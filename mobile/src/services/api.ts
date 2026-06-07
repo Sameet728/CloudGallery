@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 // Use environment variable if available, otherwise fallback to local IP
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.5:5000/api';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://cloudgallery-sln1.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_URL,
