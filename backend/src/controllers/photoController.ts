@@ -23,7 +23,15 @@ export const uploadPhoto = async (req: any, res: Response) => {
       return res.status(409).json({ message: 'This photo already exists', photo: existingPhoto });
     }
 
+    // 2.5 Verify Image Integrity (Reject corrupt files immediately)
     const isVideo = mimetype.startsWith('video/');
+    if (!isVideo) {
+      try {
+        await sharp(buffer).metadata();
+      } catch (e) {
+        return res.status(400).json({ message: 'Corrupted or invalid image file.' });
+      }
+    }
 
     // 3. Process AI Metadata asynchronously (only for images)
     let tags: string[] = [], ocrText = '', blurhash = '', exif: any = null;

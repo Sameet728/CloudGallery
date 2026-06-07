@@ -30,10 +30,12 @@ export const uploadToTelegram = async (fileBuffer: Buffer, fileName: string) => 
     const customFile = new CustomFile(fileName, fileBuffer.length, '', fileBuffer);
     
     // Upload to 'Saved Messages' (me) or a specific channel/chat
-    const result = await client.sendFile(env.TELEGRAM_CHANNEL_ID, {
+    console.log('Uploading file to Telegram:', fileName, fileBuffer.length, 'bytes');
+    const result = await client.sendFile(env.TELEGRAM_CHANNEL_ID as string, {
       file: customFile,
-      forceDocument: true, // Preserve original quality
+      workers: 1,
     });
+    console.log('Upload completed:', result.id);
 
     if (result && result.id) {
       // Need to extract a string representation of the file to store
