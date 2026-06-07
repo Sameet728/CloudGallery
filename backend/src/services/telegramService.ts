@@ -4,20 +4,32 @@ import { CustomFile } from 'telegram/client/uploads';
 import { env } from '../config/env';
 
 let client: TelegramClient;
-const stringSession = new StringSession(env.TELEGRAM_SESSION_STRING);
+const stringSession = new StringSession(env.TELEGRAM_SESSION_STRING || '');
 
 export const initTelegramClient = async () => {
-  if (!env.TELEGRAM_API_ID || !env.TELEGRAM_API_HASH) {
-    console.warn('⚠️ TELEGRAM_API_ID or TELEGRAM_API_HASH not set. Telegram service disabled.');
+  if ((!env.TELEGRAM_API_ID || !env.TELEGRAM_API_HASH) && !env.TELEGRAM_BOT_TOKEN) {
+    console.warn('⚠️ TELEGRAM_API_ID/HASH or BOT_TOKEN not set. Telegram service disabled.');
     return;
   }
 
-  client = new TelegramClient(stringSession, env.TELEGRAM_API_ID, env.TELEGRAM_API_HASH, {
-    connectionRetries: 5,
-  });
+  try {
+    client = new TelegramClient(stringSession, parseInt(env.TELEGRAM_API_ID as string) || 0, env.TELEGRAM_API_HASH || '', {
+      connectionRetries: 5,
+    });
 
-  await client.connect();
-  console.log('✅ Telegram Client Connected.');
+    if (env.TELEGRAM_BOT_TOKEN) {
+      await client.start({
+        botAuthToken: env.TELEGRAM_BOT_TOKEN,
+      });
+      console.log('✅ Telegram Bot Client Connected.');
+    } else {
+      await client.connect();
+      console.log('✅ Telegram User Client Connected.');
+    }
+  } catch (err) {
+    console.error('❌ Failed to connect to Telegram (Auth Key might be duplicated or banned):', err);
+    // Do not crash the server
+  }
 };
 
 /**

@@ -33,16 +33,18 @@ export const uploadPhoto = async (req: any, res: Response) => {
       }
     }
 
-    // 3. Process AI Metadata asynchronously (only for images)
+    const isVideo = mimetype.startsWith('video/');
+
+    // 3. Process AI Metadata asynchronously (disabled to prevent Render Free Tier OOM)
     let tags: string[] = [], ocrText = '', blurhash = '', exif: any = null;
     
     if (!isVideo) {
-      [tags, ocrText, blurhash] = await Promise.all([
-        generateTags(buffer),
-        extractOCR(buffer),
-        generatePlaceholder(buffer)
-      ]);
-      exif = extractExif(buffer);
+      try {
+        blurhash = await generatePlaceholder(buffer);
+        exif = extractExif(buffer);
+      } catch (e) {
+        console.warn('Metadata extraction error:', e);
+      }
     }
 
     // 4. Generate 3-tier resolutions & Upload to Telegram
@@ -99,7 +101,8 @@ export const uploadPhoto = async (req: any, res: Response) => {
       location: exif?.location,
     });
 
-    // 6. Process faces asynchronously (only for images)
+    // 6. Process faces asynchronously (disabled to prevent Render Free Tier OOM)
+    /*
     if (!isVideo) {
       const faceIds = await processFaces(buffer, photo._id.toString(), req.user._id.toString());
       if (faceIds.length > 0) {
@@ -107,6 +110,7 @@ export const uploadPhoto = async (req: any, res: Response) => {
         await photo.save();
       }
     }
+    */
 
     // 6. Update user storage used
     await User.findByIdAndUpdate(req.user._id, { $inc: { storageUsed: size } });
