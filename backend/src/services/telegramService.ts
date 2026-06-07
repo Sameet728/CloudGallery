@@ -13,7 +13,7 @@ export const initTelegramClient = async () => {
   }
 
   try {
-    client = new TelegramClient(stringSession, parseInt(env.TELEGRAM_API_ID as string) || 0, env.TELEGRAM_API_HASH || '', {
+    client = new TelegramClient(stringSession, env.TELEGRAM_API_ID || 0, env.TELEGRAM_API_HASH || '', {
       connectionRetries: 5,
     });
 

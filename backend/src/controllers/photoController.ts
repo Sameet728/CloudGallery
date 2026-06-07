@@ -23,58 +23,49 @@ export const uploadPhoto = async (req: any, res: Response) => {
       return res.status(409).json({ message: 'This photo already exists', photo: existingPhoto });
     }
 
-    // 2.5 Verify Image Integrity (Reject corrupt files immediately)
-    const isVideo = mimetype.startsWith('video/');
-    if (!isVideo) {
-      try {
-        await sharp(buffer).metadata();
-      } catch (e) {
-        return res.status(400).json({ message: 'Corrupted or invalid image file.' });
-      }
+    // Reject videos completely
+    if (mimetype.startsWith('video/')) {
+      return res.status(400).json({ message: 'Video upload is not supported in this app.' });
     }
 
-    const isVideo = mimetype.startsWith('video/');
+    // 2.5 Verify Image Integrity (Reject corrupt files immediately)
+    try {
+      await sharp(buffer).metadata();
+    } catch (e) {
+      return res.status(400).json({ message: 'Corrupted or invalid image file.' });
+    }
 
     // 3. Process AI Metadata asynchronously (disabled to prevent Render Free Tier OOM)
     let tags: string[] = [], ocrText = '', blurhash = '', exif: any = null;
     
-    if (!isVideo) {
-      try {
-        blurhash = await generatePlaceholder(buffer);
-        exif = extractExif(buffer);
-      } catch (e) {
-        console.warn('Metadata extraction error:', e);
-      }
+    try {
+      blurhash = await generatePlaceholder(buffer);
+      exif = extractExif(buffer);
+    } catch (e) {
+      console.warn('Metadata extraction error:', e);
     }
 
     // 4. Generate 3-tier resolutions & Upload to Telegram
     let thumbMessageId, mediumMessageId, originalMessageId, originalFileId;
 
     try {
-      if (isVideo) {
-        // Upload video directly
-        const res = await uploadToTelegram(buffer, originalname);
-        originalFileId = res.fileId;
-        originalMessageId = res.messageId;
-      } else {
-        // 4a. Resize using Sharp
-        const [thumbBuffer, mediumBuffer] = await Promise.all([
-          sharp(buffer).resize(150, 150, { fit: 'cover' }).jpeg({ quality: 60 }).toBuffer(),
-          sharp(buffer).resize(1080, null, { withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer()
-        ]);
+      // 4a. Resize using Sharp
+      const [thumbBuffer, mediumBuffer] = await Promise.all([
+        sharp(buffer).resize(150, 150, { fit: 'cover' }).jpeg({ quality: 60 }).toBuffer(),
+        sharp(buffer).resize(1080, null, { withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer()
+      ]);
 
-        // 4b. Upload all versions to Telegram using GramJS User API
-        const [thumbRes, mediumRes, originalRes] = await Promise.all([
-          uploadToTelegram(thumbBuffer, 'thumb_' + originalname),
-          uploadToTelegram(mediumBuffer, 'medium_' + originalname),
-          uploadToTelegram(buffer, originalname)
-        ]);
+      // 4b. Upload all versions to Telegram using GramJS User API
+      const [thumbRes, mediumRes, originalRes] = await Promise.all([
+        uploadToTelegram(thumbBuffer, 'thumb_' + originalname),
+        uploadToTelegram(mediumBuffer, 'medium_' + originalname),
+        uploadToTelegram(buffer, originalname)
+      ]);
 
-        thumbMessageId = thumbRes.messageId;
-        mediumMessageId = mediumRes.messageId;
-        originalMessageId = originalRes.messageId;
-        originalFileId = originalRes.fileId;
-      }
+      thumbMessageId = thumbRes.messageId;
+      mediumMessageId = mediumRes.messageId;
+      originalMessageId = originalRes.messageId;
+      originalFileId = originalRes.fileId;
     } catch (err) {
       console.warn('Upload failed, falling back to Single Tier. Error:', err);
       const res = await uploadToTelegram(buffer, originalname);
