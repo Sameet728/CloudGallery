@@ -23,9 +23,18 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 
+import mongoose from 'mongoose';
+
 // Routes
-app.get('/api/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', message: 'CloudGallery API is running' });
+app.get(['/api/health', '/api/status'], async (req: Request, res: Response) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  
+  res.json({ 
+    status: 'ok', 
+    message: 'CloudGallery API is running',
+    database: dbStatus,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Deep link fallback route
