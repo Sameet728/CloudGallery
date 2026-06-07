@@ -1,0 +1,18 @@
+  --non-interactive is not supported, use $CI=1 instead
+The following packages should be updated for best compatibility with the installed expo version:
+  @types/react@19.2.17 - expected version: ~19.1.10
+  typescript@6.0.3 - expected version: ~5.9.2
+Your project may not work correctly until you install the expected versions of the packages.
+"shadow*" style props are deprecated. Use "boxShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
