@@ -22,8 +22,12 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.READ_MEDIA_VIDEO",
-        "android.permission.ACCESS_MEDIA_LOCATION"
-      ]
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.READ_MEDIA_AUDIO"
+      ],
+      "package": "com.sameet728.cloudgallery"
     },
     "web": {
       "bundler": "metro",
@@ -48,10 +52,27 @@
           "savePhotosPermission": "Allow CloudGallery to save photos.",
           "isAccessMediaLocationEnabled": true
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "newArchEnabled": true
+          },
+          "ios": {
+            "newArchEnabled": true
+          }
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2ea592cf-2777-4fd3-b1b7-4dbfbe262e9e"
+      }
     }
   }
 }

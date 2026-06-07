@@ -37,7 +37,11 @@ const activeTasks = new Map<string, FileSystem.UploadTask>();
 const MAX_CONCURRENT = 5;
 
 // Setup MMKV instance
-const storage = new MMKV();
+let _storage: MMKV | null = null;
+const getStorage = () => {
+  if (!_storage) _storage = new MMKV();
+  return _storage;
+};
 
 export const useUploadStore = create<UploadStore>((set, get) => ({
   items: [],
@@ -45,7 +49,7 @@ export const useUploadStore = create<UploadStore>((set, get) => ({
   
   init: async () => {
     try {
-      const savedQueueStr = storage.getString('upload_queue');
+      const savedQueueStr = getStorage().getString('upload_queue');
       if (savedQueueStr) {
         const parsed = JSON.parse(savedQueueStr);
         set({
@@ -252,7 +256,7 @@ export const useUploadStore = create<UploadStore>((set, get) => ({
 
 // Subscribe to state changes and persist items
 useUploadStore.subscribe((state) => {
-  storage.set('upload_queue', JSON.stringify(state.items));
+  getStorage().set('upload_queue', JSON.stringify(state.items));
 });
 
 // Init from storage immediately

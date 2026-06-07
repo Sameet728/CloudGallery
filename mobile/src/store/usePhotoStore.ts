@@ -4,9 +4,22 @@ import api from '../services/api';
 import * as MediaLibrary from 'expo-media-library';
 import { MMKV } from 'react-native-mmkv';
 
-const storage = new MMKV();
-const cachedPhotosStr = storage.getString('photos_cache');
-const initialPhotos = cachedPhotosStr ? JSON.parse(cachedPhotosStr) : [];
+let _storage: MMKV | null = null;
+const getStorage = () => {
+  if (!_storage) _storage = new MMKV();
+  return _storage;
+};
+
+const getCachedPhotos = () => {
+  try {
+    const cachedPhotosStr = getStorage().getString('photos_cache');
+    return cachedPhotosStr ? JSON.parse(cachedPhotosStr) : [];
+  } catch (e) {
+    return [];
+  }
+};
+
+const initialPhotos = getCachedPhotos();
 
 interface PhotoStoreState {
   photos: any[];
@@ -63,8 +76,7 @@ export const usePhotoStore = create<PhotoStoreState>((set, get) => ({
       try {
         const response = await api.get('/photos');
         set({ photos: response.data.photos, loading: false });
-        // Save to cache synchronously
-        storage.set('photos_cache', JSON.stringify(response.data.photos));
+        getStorage().set('photos_cache', JSON.stringify(response.data.photos));
       } catch (error) {
         console.error('Error fetching photos:', error);
         set({ loading: false });
